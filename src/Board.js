@@ -6,10 +6,13 @@ function Board(props) {
     const [boardState, setBoardState] = useState([]);
     const [lineState, setLineState] = useState([]);
     const [currLineState, setCurrLineState] = useState(0);
+    const [playerOnePegs, setPlayerOneState] = useState([]);
+    const [playerTwoPegs, setPlayerTwoState] = useState([]);
+    const [currPlayer, setCurrPlayer] = useState(true);
 
     function findSlope(line) {
         const slope = (line.x1 - line.x2) / (line.y1 - line.y2);
-        return slope
+        return slope;
     }
     
     function createMatrix(line1, line2) {
@@ -51,6 +54,7 @@ function Board(props) {
     }
 
     function handleClick(box) {
+        setCurrPlayer(!currPlayer);
         const slicedBoardState = boardState.slice();
         slicedBoardState.push({startPoint: box.cx, endPoint: box.cy});
         setBoardState(slicedBoardState);
@@ -58,15 +62,18 @@ function Board(props) {
     }
 
     function resetState() {
-        console.log("here");
         if(currLineState === 2){
             const slicedLineState = lineState.slice();
             const newLine = {x1: boardState[boardState.length - 2].startPoint, y1: boardState[boardState.length - 2].endPoint,
                 x2: boardState[boardState.length - 1].startPoint, y2:boardState[boardState.length - 1].endPoint};
-            for(const oldLine of connections) {
-                if(checkIfValidLine(newLine, oldLine)) {
-                    slicedLineState.push(newLine);
-                    break;
+
+            if(connections.length === 0) {
+                slicedLineState.push(newLine);
+            } else {
+                for(const oldLine of connections) {
+                    if(checkIfValidLine(newLine, oldLine)) {
+                        slicedLineState.push(newLine);
+                    }
                 }
             }
 
@@ -87,8 +94,9 @@ function Board(props) {
     }
 
     const boxes = arr.map((box) => {
+        const currColor = currPlayer ? "red" : "black";
         return(
-            <Box key = {box.id} cx = {box.cx} cy = {box.cy} onClick = {() => handleClick(box)}/>
+            <Box key = {box.id} cx = {box.cx} cy = {box.cy} color = {currColor} onClick = {() => handleClick(box)}/>
         )
     })
 

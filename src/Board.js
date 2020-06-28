@@ -3,14 +3,21 @@ import Box from './Box';
 import Connection from './Connection';
 
 function Board(props) {
-    const [boardState, setBoardState] = useState([]);
+    //const [boardState, setBoardState] = useState([]);
     const [lineState, setLineState] = useState([]);
-    const [currLineState, setCurrLineState] = useState(0);
-    const [playerOnePegs, setPlayerOneState] = useState([]);
-    const [playerTwoPegs, setPlayerTwoState] = useState([]);
-    const [currPlayer, setCurrPlayer] = useState(true);
+    //const [currLineState, setCurrLineState] = useState(0);*/
+    /*const [playerOnePegs, setPlayerOneState] = useState([]);
+    const [playerTwoPegs, setPlayerTwoState] = useState([]);*/
 
-    function findSlope(line) {
+
+    const [currPlayer, setCurrPlayer] = useState(true);
+    const initPegState = [];
+    for(let i = 0; i < 576; i++) {
+        initPegState.push({clickedBy: 0});
+    }
+    const [pegs, setPegState] = useState(initPegState);
+
+    /*function findSlope(line) {
         const slope = (line.x1 - line.x2) / (line.y1 - line.y2);
         return slope;
     }
@@ -51,17 +58,28 @@ function Board(props) {
         rowReduce(currMatrix);
         console.log(currMatrix);
         return true;
+    }*/
+
+    function checkIfPotentialLine(box) {
+        const slicedLineState = lineState.slice();
+        if(pegs[box.id].clickedBy === pegs[box.id + 26].clickedBy) {
+            slicedLineState.push({x1: box.cx, y1: box.cy, x2: box.cx + 70, y2: box.cy + 35});
+        }
+        setLineState(slicedLineState);
     }
 
     function handleClick(box) {
+        const slicedPegState = pegs.slice();
+        currPlayer ? slicedPegState[box.id].clickedBy = 1 : slicedPegState[box.id].clickedBy = 2;
         setCurrPlayer(!currPlayer);
-        const slicedBoardState = boardState.slice();
+        //setPegState(slicedPegState);
+        /*const slicedBoardState = boardState.slice();
         slicedBoardState.push({startPoint: box.cx, endPoint: box.cy});
         setBoardState(slicedBoardState);
-        setCurrLineState(currLineState + 1);
+        setCurrLineState(currLineState + 1);*/
     }
 
-    function resetState() {
+    /*function resetState() {
         if(currLineState === 2){
             const slicedLineState = lineState.slice();
             const newLine = {x1: boardState[boardState.length - 2].startPoint, y1: boardState[boardState.length - 2].endPoint,
@@ -81,9 +99,9 @@ function Board(props) {
             setCurrLineState(0);
             setBoardState([]);
         }
-    }
+    }*/
 
-    useEffect(resetState);
+    //useEffect(che;
 
     const arr = [];
     for(let row = 0; row < 24; row++) {
@@ -94,7 +112,12 @@ function Board(props) {
     }
 
     const boxes = arr.map((box) => {
-        const currColor = currPlayer ? "red" : "black";
+        let currColor = "black";
+        if(pegs[box.id].clickedBy === 1) {
+            currColor = "red";
+        } else if(pegs[box.id].clickedBy === 2) {
+            currColor = "blue";
+        }
         return(
             <Box key = {box.id} cx = {box.cx} cy = {box.cy} color = {currColor} onClick = {() => handleClick(box)}/>
         )

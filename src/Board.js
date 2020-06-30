@@ -1,21 +1,23 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Box from './Box';
 import Connection from './Connection';
 
 function Board(props) {
-    //const [boardState, setBoardState] = useState([]);
+    const initialPegs = initilizePegs();
     const [lineState, setLineState] = useState([]);
-    //const [currLineState, setCurrLineState] = useState(0);*/
-    /*const [playerOnePegs, setPlayerOneState] = useState([]);
-    const [playerTwoPegs, setPlayerTwoState] = useState([]);*/
-
-
     const [currPlayer, setCurrPlayer] = useState(true);
-    const initPegState = [];
-    for(let i = 0; i < 576; i++) {
-        initPegState.push({clickedBy: 0});
+    const [pegs, setPegState] = useState(initialPegs);
+
+    function initilizePegs() {
+        const initPegState = [];
+        for(let row = 0; row < 24; row++) {
+            for(let col = 0; col < 24; col++) {
+                const index = row * 24 + col;
+                initPegState[index] = {id: index, cx: 17.5 + col * 35, cy: 17.5 + row * 35, clickedBy: 0};
+            }
+        }
+        return initPegState;
     }
-    const [pegs, setPegState] = useState(initPegState);
 
     /*function findSlope(line) {
         const slope = (line.x1 - line.x2) / (line.y1 - line.y2);
@@ -60,23 +62,39 @@ function Board(props) {
         return true;
     }*/
 
-    function checkIfPotentialLine(box) {
+    function checkIfPotentialLine(i) {
         const slicedLineState = lineState.slice();
-        if(pegs[box.id].clickedBy === pegs[box.id + 26].clickedBy) {
-            slicedLineState.push({x1: box.cx, y1: box.cy, x2: box.cx + 70, y2: box.cy + 35});
+
+        // first
+        if(i >= 49) {
+            if(pegs[i].clickedBy === pegs[i - 49].clickedBy) {
+                slicedLineState.push({x1: pegs[i].cx, y1: pegs[i].cy, x2: pegs[i - 49].cx, y2: pegs[i - 49].cy});
+            }
         }
+
+        // second
+          if(i >= 47) {
+            if(pegs[i].clickedBy === pegs[i - 47].clickedBy) {
+                slicedLineState.push({x1: pegs[i].cx, y1: pegs[i].cy, x2: pegs[i - 47].cx, y2: pegs[i - 47].cy});
+            }
+        }
+
+        // third
+          if(i >= 22) {
+            if(pegs[i].clickedBy === pegs[i - 22].clickedBy) {
+                slicedLineState.push({x1: pegs[i].cx, y1: pegs[i].cy, x2: pegs[i - 22].cx, y2: pegs[i - 22].cy});
+            }
+        }
+        
         setLineState(slicedLineState);
     }
 
-    function handleClick(box) {
+    function handleClick(i) {
         const slicedPegState = pegs.slice();
-        currPlayer ? slicedPegState[box.id].clickedBy = 1 : slicedPegState[box.id].clickedBy = 2;
+        currPlayer ? slicedPegState[i].clickedBy = 1 : slicedPegState[i].clickedBy = 2;
         setCurrPlayer(!currPlayer);
-        //setPegState(slicedPegState);
-        /*const slicedBoardState = boardState.slice();
-        slicedBoardState.push({startPoint: box.cx, endPoint: box.cy});
-        setBoardState(slicedBoardState);
-        setCurrLineState(currLineState + 1);*/
+        setPegState(slicedPegState);
+        checkIfPotentialLine(i);
     }
 
     /*function resetState() {
@@ -103,23 +121,17 @@ function Board(props) {
 
     //useEffect(che;
 
-    const arr = [];
-    for(let row = 0; row < 24; row++) {
-        for(let col = 0; col < 24; col++) {
-            const index = row * 24 + col;
-            arr[index] = {id: index, cx: 17.5 + col * 35, cy: 17.5 + row * 35};
-        }
-    }
 
-    const boxes = arr.map((box) => {
+
+    const allPegs = pegs.map((peg) => {
         let currColor = "black";
-        if(pegs[box.id].clickedBy === 1) {
+        if(peg.clickedBy === 1) {
             currColor = "red";
-        } else if(pegs[box.id].clickedBy === 2) {
+        } else if(peg.clickedBy === 2) {
             currColor = "blue";
         }
         return(
-            <Box key = {box.id} cx = {box.cx} cy = {box.cy} color = {currColor} onClick = {() => handleClick(box)}/>
+            <Box key = {peg.id} cx = {peg.cx} cy = {peg.cy} color = {currColor} onClick = {() => handleClick(peg.id)}/>
         )
     })
 
@@ -132,7 +144,7 @@ function Board(props) {
     return (
         <svg height = "800" width = "800">
             { connections }
-            { boxes }
+            { allPegs }
         </svg>
     )
 }

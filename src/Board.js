@@ -13,13 +13,14 @@ function Board(props) {
         for(let row = 0; row < 24; row++) {
             for(let col = 0; col < 24; col++) {
                 const index = row * 24 + col;
-                initPegState[index] = {id: index, cx: 17.5 + col * 35, cy: 17.5 + row * 35, clickedBy: 0};
+                initPegState[index] = {id: index, cx: 17.5 + col * 35,
+                    cy: 17.5 + row * 35, clickedBy: 0};
             }
         }
         return initPegState;
     }
 
-    /*function findSlope(line) {
+    function findSlope(line) {
         const slope = (line.x1 - line.x2) / (line.y1 - line.y2);
         return slope;
     }
@@ -27,7 +28,8 @@ function Board(props) {
     function createMatrix(line1, line2) {
         const slope1 = findSlope(line1);
         const slope2 = findSlope(line2);
-        const initMatrix = [-1* slope1, 1, (-1 * slope1 * line1.y1) + line1.x1, -1* slope2, 1, (-1 * slope2 * line2.y1) + line2.x1];
+        const initMatrix = [-1* slope1, 1, (-1 * slope1 * line1.y1) + line1.x1,
+            -1 * slope2, 1, (-1 * slope2 * line2.y1) + line2.x1];
         return initMatrix;
     }
 
@@ -55,73 +57,65 @@ function Board(props) {
         return matrix
     }
 
-    function checkIfValidLine(newLine, oldLine) {
-        const currMatrix = createMatrix(newLine, oldLine);
-        rowReduce(currMatrix);
-        console.log(currMatrix);
-        return true;
-    }*/
+    function checkIfLineCrosses(newLine, oldLine) {
+        for(const oldLine of lineState) {
+            const currMatrix = createMatrix(newLine, oldLine);
+            rowReduce(currMatrix);
+        }     
+    }
 
-    function checkIfPotentialLine(i) {
-        const slicedLineState = lineState.slice();
-
-        // first
-        if(i >= 49) {
-            if(pegs[i].clickedBy === pegs[i - 49].clickedBy) {
-                slicedLineState.push({x1: pegs[i].cx, y1: pegs[i].cy, x2: pegs[i - 49].cx, y2: pegs[i - 49].cy});
-            }
-        }
-
-        // second
-          if(i >= 47) {
-            if(pegs[i].clickedBy === pegs[i - 47].clickedBy) {
-                slicedLineState.push({x1: pegs[i].cx, y1: pegs[i].cy, x2: pegs[i - 47].cx, y2: pegs[i - 47].cy});
-            }
-        }
-
-        // third
-          if(i >= 22) {
-            if(pegs[i].clickedBy === pegs[i - 22].clickedBy) {
-                slicedLineState.push({x1: pegs[i].cx, y1: pegs[i].cy, x2: pegs[i - 22].cx, y2: pegs[i - 22].cy});
-            }
-        }
+    function checkIfPotentialLine(currPos) {
         
+        const slicedLineState = lineState.slice();
+        const positions = [22, 26, 47, 49];
+
+        // check the points above the clicked point
+        for(let i = 0; i < positions.length; i++) {
+            if(currPos >= positions[i]) {
+                if(pegs[currPos].clickedBy ===
+                    pegs[currPos - positions[i]].clickedBy) {
+                    const potentialLine = {
+                        x1: pegs[currPos].cx,
+                        y1: pegs[currPos].cy,
+                        x2: pegs[currPos - positions[i]].cx,
+                        y2: pegs[currPos - positions[i]].cy};
+                    if(checkIfLineCrosses(potentialLine)) {
+                        slicedLineState.push(potentialLine);
+                    }
+                }
+            }
+        }
+
+        // check the points below the clicked points
+        for(let i = 0; i < positions.length; i++) {
+            if(currPos <= 574 - positions[i]) {
+                if(pegs[currPos].clickedBy ===
+                    pegs[currPos + positions[i]].clickedBy) {
+                    const potentialLine = {
+                        x1: pegs[currPos].cx,
+                        y1: pegs[currPos].cy,
+                        x2: pegs[currPos + positions[i]].cx,
+                        y2: pegs[currPos + positions[i]].cy};
+                    if(checkIfLineCrosses(potentialLine)) {
+                        slicedLineState.push(potentialLine);
+                    }
+                }
+            }
+        }
+
         setLineState(slicedLineState);
     }
 
     function handleClick(i) {
         const slicedPegState = pegs.slice();
-        currPlayer ? slicedPegState[i].clickedBy = 1 : slicedPegState[i].clickedBy = 2;
-        setCurrPlayer(!currPlayer);
-        setPegState(slicedPegState);
-        checkIfPotentialLine(i);
-    }
-
-    /*function resetState() {
-        if(currLineState === 2){
-            const slicedLineState = lineState.slice();
-            const newLine = {x1: boardState[boardState.length - 2].startPoint, y1: boardState[boardState.length - 2].endPoint,
-                x2: boardState[boardState.length - 1].startPoint, y2:boardState[boardState.length - 1].endPoint};
-
-            if(connections.length === 0) {
-                slicedLineState.push(newLine);
-            } else {
-                for(const oldLine of connections) {
-                    if(checkIfValidLine(newLine, oldLine)) {
-                        slicedLineState.push(newLine);
-                    }
-                }
-            }
-
-            setLineState(slicedLineState);
-            setCurrLineState(0);
-            setBoardState([]);
+        if(slicedPegState[i].clickedBy === 0) {
+            currPlayer ? slicedPegState[i].clickedBy = 1 :
+                slicedPegState[i].clickedBy = 2;
+            checkIfPotentialLine(i);
+            setCurrPlayer(!currPlayer);
         }
-    }*/
-
-    //useEffect(che;
-
-
+        setPegState(slicedPegState);
+    }
 
     const allPegs = pegs.map((peg) => {
         let currColor = "black";
@@ -131,13 +125,15 @@ function Board(props) {
             currColor = "blue";
         }
         return(
-            <Box key = {peg.id} cx = {peg.cx} cy = {peg.cy} color = {currColor} onClick = {() => handleClick(peg.id)}/>
+            <Box key = {peg.id} cx = {peg.cx} cy = {peg.cy} color = {currColor}
+                onClick = {() => handleClick(peg.id)}/>
         )
     })
 
     const connections = lineState.map((line, index) => {
         return(
-            <Connection key = {index} x1 = {line.x1} y1 = {line.y1} x2 = {line.x2} y2 = {line.y2}/>
+            <Connection key = {index} x1 = {line.x1} y1 = {line.y1}
+                x2 = {line.x2} y2 = {line.y2}/>
         )
     })
 

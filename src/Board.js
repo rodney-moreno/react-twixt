@@ -20,7 +20,7 @@ function Board(props) {
         return initPegState;
     }
 
-    function findSlope(line) {
+    /*function findSlope(line) {
         const slope = (line.x1 - line.x2) / (line.y1 - line.y2);
         return slope;
     }
@@ -35,33 +35,43 @@ function Board(props) {
 
     function rowReduce(matrix) {
         // first operation
-        const a1 = matrix[0]
-        matrix[0] = 1
-        matrix[1] = matrix[1] / a1
-        matrix[2] = matrix[2] / a1
+        const a1 = matrix[0];
+        matrix[0] = 1;
+        matrix[1] = matrix[1] / a1;
+        matrix[2] = matrix[2] / a1;
         
         // 0 in first col second row
-        const a2 = matrix[3]
+        const a2 = matrix[3];
         matrix[3] = 0;
-        matrix[4] = matrix[4] + (matrix[1]*-1*a2)   
-        matrix[5] = matrix[5] + (matrix[2]*-1*a2)
+        matrix[4] = matrix[4] + (matrix[1] * -1 * a2);  
+        matrix[5] = matrix[5] + (matrix[2] * -1 * a2);
         
         // 1 in the second column
-        const b2 = matrix[4]
-        matrix[4] = 1
-        matrix[5] = matrix[5] / b2
+        const b2 = matrix[4];
+        matrix[4] = 1;
+        matrix[5] = matrix[5] / b2;
 
-        const b1 = matrix[1]
-        matrix[1] = 0
-        matrix[2] = matrix[2] + (-1 * b1  * matrix[5])
-        return matrix
-    }
+        const b1 = matrix[1];
+        matrix[1] = 0;
+        matrix[2] = matrix[2] + (-1 * b1  * matrix[5]);
+        return matrix;
+    }*/
 
-    function checkIfLineCrosses(newLine, oldLine) {
+    function checkIfNoLineCrosses(newLine) {
+        let lineCross = false;
         for(const oldLine of lineState) {
-            const currMatrix = createMatrix(newLine, oldLine);
-            rowReduce(currMatrix);
-        }     
+            const a1 = newLine.x1 - newLine.x2;
+            const b1 = newLine.y2 - newLine.y1;
+            const a2 = oldLine.x1 - oldLine.x2;
+            const b2 = oldLine.y2 - oldLine.y1;
+            const c1 = a1 * newLine.x1 + b1 * newLine.y1;
+            const c2 = a2 * oldLine.x1 + b2 * oldLine.y1;
+            const denominator = a1 * b2 - a2 * b1;
+            const x = (b2 * c1 - b1 * c2) / denominator;
+            const y = (a1 * c2 - a2 * c1) / denominator;
+            console.log('x: ', x, ' y: ', y)
+        }
+        return !lineCross;
     }
 
     function checkIfPotentialLine(currPos) {
@@ -79,7 +89,7 @@ function Board(props) {
                         y1: pegs[currPos].cy,
                         x2: pegs[currPos - positions[i]].cx,
                         y2: pegs[currPos - positions[i]].cy};
-                    if(checkIfLineCrosses(potentialLine)) {
+                    if(checkIfNoLineCrosses(potentialLine, )) {
                         slicedLineState.push(potentialLine);
                     }
                 }
@@ -96,13 +106,13 @@ function Board(props) {
                         y1: pegs[currPos].cy,
                         x2: pegs[currPos + positions[i]].cx,
                         y2: pegs[currPos + positions[i]].cy};
-                    if(checkIfLineCrosses(potentialLine)) {
+                    if(checkIfNoLineCrosses(potentialLine)) {
                         slicedLineState.push(potentialLine);
                     }
                 }
             }
         }
-
+        // console.log(slicedLineState);
         setLineState(slicedLineState);
     }
 

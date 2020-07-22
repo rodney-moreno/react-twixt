@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import Box from './Box';
 import Connection from './Connection';
+import Player from './Player';
 
 function Board(props) {
     const initialPegs = initilizePegs();
@@ -14,67 +15,51 @@ function Board(props) {
             for(let col = 0; col < 24; col++) {
                 const index = row * 24 + col;
                 initPegState[index] = {id: index, cx: 17.5 + col * 35,
-                    cy: 17.5 + row * 35, clickedBy: 0};
+                    cy: 17.5 + row * 35, gx: col, gy: row, clickedBy: 0};
             }
         }
         return initPegState;
     }
 
-    /*function findSlope(line) {
-        const slope = (line.x1 - line.x2) / (line.y1 - line.y2);
-        return slope;
-    }
-    
-    function createMatrix(line1, line2) {
-        const slope1 = findSlope(line1);
-        const slope2 = findSlope(line2);
-        const initMatrix = [-1* slope1, 1, (-1 * slope1 * line1.y1) + line1.x1,
-            -1 * slope2, 1, (-1 * slope2 * line2.y1) + line2.x1];
-        return initMatrix;
-    }
-
-    function rowReduce(matrix) {
-        // first operation
-        const a1 = matrix[0];
-        matrix[0] = 1;
-        matrix[1] = matrix[1] / a1;
-        matrix[2] = matrix[2] / a1;
-        
-        // 0 in first col second row
-        const a2 = matrix[3];
-        matrix[3] = 0;
-        matrix[4] = matrix[4] + (matrix[1] * -1 * a2);  
-        matrix[5] = matrix[5] + (matrix[2] * -1 * a2);
-        
-        // 1 in the second column
-        const b2 = matrix[4];
-        matrix[4] = 1;
-        matrix[5] = matrix[5] / b2;
-
-        const b1 = matrix[1];
-        matrix[1] = 0;
-        matrix[2] = matrix[2] + (-1 * b1  * matrix[5]);
-        return matrix;
-    }*/
-
+    /*
+        Compares a line that might be drawn to all the lines that have
+        currently been drawn
+    */
     function checkIfNoLineCrosses(newLine) {
-        let lineCross = false;
+        
         for(const oldLine of lineState) {
-            const a1 = newLine.x1 - newLine.x2;
-            const b1 = newLine.y2 - newLine.y1;
-            const a2 = oldLine.x1 - oldLine.x2;
-            const b2 = oldLine.y2 - oldLine.y1;
-            const c1 = a1 * newLine.x1 + b1 * newLine.y1;
-            const c2 = a2 * oldLine.x1 + b2 * oldLine.y1;
-            const denominator = a1 * b2 - a2 * b1;
-            const x = (b2 * c1 - b1 * c2) / denominator;
-            const y = (a1 * c2 - a2 * c1) / denominator;
-            console.log('x: ', x, ' y: ', y)
-        }
-        return !lineCross;
+
+            const A1 = newLine.p2.gy - newLine.p1.gy;
+            const B1 = newLine.p1.gx - newLine.p2.gx;
+            const A2 = oldLine.p2.gy - oldLine.p1.gy;
+            const B2 = oldLine.p1.gx - oldLine.p2.gx;
+            const C1 = A1 * newLine.p1.gx + B1 * newLine.p1.gy;
+            const C2 = A2 * oldLine.p1.gx + B2 * oldLine.p1.gy;
+            const denominator = A1 * B2 - A2 * B1;
+
+            const x = (B2 * C1 - B1 * C2) / denominator;
+            const y = (A1 * C2 - A2 * C1) / denominator;
+
+            const rx0 = (x - newLine.p1.gx) / (newLine.p2.gx - newLine.p1.gx);
+            const rx1 = (x - oldLine.p1.gx) / (oldLine.p2.gx - oldLine.p1.gx);
+
+
+            console.log(x,y);
+
+            if(x !== 0 && y !== 0) {
+                if((rx0 >= 0 && rx0 <= 1) && (rx1 >= 0 && rx1 <= 1)) {
+                    console.log(x, y);
+                    if(x !== newLine.p2.gx && y !== newLine.p2.gy){
+                        return false;
+                    }
+                }
+            }
+        }    
+
+        return true;
     }
 
-    function checkIfPotentialLine(currPos) {
+    function checkPotentialLines(currPos) {
         
         const slicedLineState = lineState.slice();
         const positions = [22, 26, 47, 49];
@@ -85,11 +70,10 @@ function Board(props) {
                 if(pegs[currPos].clickedBy ===
                     pegs[currPos - positions[i]].clickedBy) {
                     const potentialLine = {
-                        x1: pegs[currPos].cx,
-                        y1: pegs[currPos].cy,
-                        x2: pegs[currPos - positions[i]].cx,
-                        y2: pegs[currPos - positions[i]].cy};
-                    if(checkIfNoLineCrosses(potentialLine, )) {
+                        p1: pegs[currPos],
+                        p2: pegs[currPos - positions[i]]
+                    };
+                    if(checkIfNoLineCrosses(potentialLine)) {
                         slicedLineState.push(potentialLine);
                     }
                 }
@@ -98,21 +82,19 @@ function Board(props) {
 
         // check the points below the clicked points
         for(let i = 0; i < positions.length; i++) {
-            if(currPos <= 574 - positions[i]) {
+            if(currPos <= 576 - positions[i]) {
                 if(pegs[currPos].clickedBy ===
                     pegs[currPos + positions[i]].clickedBy) {
                     const potentialLine = {
-                        x1: pegs[currPos].cx,
-                        y1: pegs[currPos].cy,
-                        x2: pegs[currPos + positions[i]].cx,
-                        y2: pegs[currPos + positions[i]].cy};
+                        p1: pegs[currPos],
+                        p2: pegs[currPos + positions[i]]
+                    };
                     if(checkIfNoLineCrosses(potentialLine)) {
                         slicedLineState.push(potentialLine);
                     }
                 }
             }
         }
-        // console.log(slicedLineState);
         setLineState(slicedLineState);
     }
 
@@ -121,7 +103,7 @@ function Board(props) {
         if(slicedPegState[i].clickedBy === 0) {
             currPlayer ? slicedPegState[i].clickedBy = 1 :
                 slicedPegState[i].clickedBy = 2;
-            checkIfPotentialLine(i);
+            checkPotentialLines(i);
             setCurrPlayer(!currPlayer);
         }
         setPegState(slicedPegState);
@@ -142,16 +124,20 @@ function Board(props) {
 
     const connections = lineState.map((line, index) => {
         return(
-            <Connection key = {index} x1 = {line.x1} y1 = {line.y1}
-                x2 = {line.x2} y2 = {line.y2}/>
+            <Connection key = {index} x1 = {line.p1.cx} y1 = {line.p1.cy}
+                x2 = {line.p2.cx} y2 = {line.p2.cy}/>
         )
     })
 
+
     return (
-        <svg height = "800" width = "800">
-            { connections }
-            { allPegs }
-        </svg>
+        <div>
+            <Player player = {currPlayer}/>        
+            <svg height = "1000" width = "1000">
+                { connections }
+                { allPegs }
+            </svg>
+        </div>
     )
 }
 

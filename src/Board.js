@@ -125,15 +125,27 @@ function Board(props) {
     const connections = lineState.map((line, index) => {
         return(
             <Connection key = {index} x1 = {line.p1.cx} y1 = {line.p1.cy}
-                x2 = {line.p2.cx} y2 = {line.p2.cy}/>
+                x2 = {line.p2.cx} y2 = {line.p2.cy} stroke = "black"/>
         )
     })
-
+    
+    const topBorder = <Connection x1 = "52.5" y1 = "35" x2 = "785.5" y2 = "35"
+        stroke = "red"/>;
+    const botBorder = <Connection x1 = "52.5" y1 = "805" x2 = "785.5" y2 = "805"
+        stroke = "red"/>;
+    const leftBorder = <Connection x1 = "35" y1 = "52.5" x2 = "35" y2 = "787.5"
+        stroke = "blue"/>;
+    const rightBorder = <Connection x1 = "805" y1 = "35" x2 = "805" y2 = "787.5"
+        stroke = "blue"/>;
 
     return (
         <div>
             <Player player = {currPlayer}/>        
             <svg height = "1000" width = "1000">
+                { topBorder }
+                { botBorder }
+                { leftBorder }
+                { rightBorder }
                 { connections }
                 { allPegs }
             </svg>

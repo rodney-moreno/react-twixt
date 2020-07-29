@@ -5,9 +5,39 @@ import Player from './Player';
 
 function Board(props) {
     const initialPegs = initilizePegs();
+    const initialAdjList = initAdjList();
     const [lineState, setLineState] = useState([]);
     const [currPlayer, setCurrPlayer] = useState(true);
     const [pegs, setPegState] = useState(initialPegs);
+    const [adjList, setAdjListState] = useState(initialAdjList);
+    const [visited, setVistedState] = useState(new Array(580).fill(false));
+    const [winner, setWinner] = useState(0);
+
+    function initAdjList() {
+        const adjList = new Array(580).fill([]);
+        // connect top row to top node
+        for(let i = 1; i < 23; i++) {
+            const temp = adjList[i].slice();
+            temp.push(576);
+            adjList[i] = temp;
+            const temp2 = adjList[576].slice();
+            temp2.push(i);
+            adjList[576] = temp2;
+        }
+
+        // connect bottom row to bot node
+        for(let j = 553; j < 575; j++) {
+            const temp = adjList[j].slice();
+            temp.push(577);
+            adjList[j] = temp;
+
+            const temp2 = adjList[577].slice();
+            temp2.push(j);
+            adjList[577] = temp2;
+        }
+
+        return adjList;
+    }
 
     function initilizePegs() {
         const initPegState = [];
@@ -43,12 +73,8 @@ function Board(props) {
             const rx0 = (x - newLine.p1.gx) / (newLine.p2.gx - newLine.p1.gx);
             const rx1 = (x - oldLine.p1.gx) / (oldLine.p2.gx - oldLine.p1.gx);
 
-
-            console.log(x,y);
-
             if(x !== 0 && y !== 0) {
                 if((rx0 >= 0 && rx0 <= 1) && (rx1 >= 0 && rx1 <= 1)) {
-                    console.log(x, y);
                     if(x !== newLine.p2.gx && y !== newLine.p2.gy){
                         return false;
                     }
@@ -59,7 +85,7 @@ function Board(props) {
         return true;
     }
 
-    function checkPotentialLines(currPos) {
+    function checkPotentialLines(currPos, adjList) {
         
         const slicedLineState = lineState.slice();
         const positions = [22, 26, 47, 49];
@@ -75,6 +101,13 @@ function Board(props) {
                     };
                     if(checkIfNoLineCrosses(potentialLine)) {
                         slicedLineState.push(potentialLine);
+                        const temp1 = adjList[potentialLine.p1.id].slice();
+                        temp1.push(potentialLine.p2.id);
+                        adjList[potentialLine.p1.id] = temp1;
+
+                        const temp2 = adjList[potentialLine.p2.id].slice();
+                        temp2.push(potentialLine.p1.id);
+                        adjList[potentialLine.p2.id] = temp2;
                     }
                 }
             }
@@ -91,6 +124,13 @@ function Board(props) {
                     };
                     if(checkIfNoLineCrosses(potentialLine)) {
                         slicedLineState.push(potentialLine);
+                        const temp1 = adjList[potentialLine.p1.id].slice();
+                        temp1.push(potentialLine.p2.id);
+                        adjList[potentialLine.p1.id] = temp1;
+
+                        const temp2 = adjList[potentialLine.p2.id].slice();
+                        temp2.push(potentialLine.p1.id);
+                        adjList[potentialLine.p2.id] = temp2;
                     }
                 }
             }
@@ -98,15 +138,26 @@ function Board(props) {
         setLineState(slicedLineState);
     }
 
-    function handleClick(i) {
+    
+    function containsPath(adjList, node1, node2) {
+        visited[node1] = true;
+        for(const children of adjList[node1]) {
+            if(visited[children] !== true) {
+                containsPath(adjList, children);
+            }
+        }
+    }
+
+    function handleClick(i, adjList) {
         const slicedPegState = pegs.slice();
         if(slicedPegState[i].clickedBy === 0) {
             currPlayer ? slicedPegState[i].clickedBy = 1 :
                 slicedPegState[i].clickedBy = 2;
-            checkPotentialLines(i);
+            checkPotentialLines(i, adjList);
             setCurrPlayer(!currPlayer);
         }
         setPegState(slicedPegState);
+        check();
     }
 
     const allPegs = pegs.map((peg) => {
@@ -118,7 +169,7 @@ function Board(props) {
         }
         return(
             <Box key = {peg.id} cx = {peg.cx} cy = {peg.cy} color = {currColor}
-                onClick = {() => handleClick(peg.id)}/>
+                onClick = {() => handleClick(peg.id, adjList)}/>
         )
     })
 
@@ -135,8 +186,16 @@ function Board(props) {
         stroke = "red"/>;
     const leftBorder = <Connection x1 = "35" y1 = "52.5" x2 = "35" y2 = "787.5"
         stroke = "blue"/>;
-    const rightBorder = <Connection x1 = "805" y1 = "35" x2 = "805" y2 = "787.5"
+    const rightBorder = <Connection x1 = "805" y1 = "52.5" x2 = "805" y2 = "787.5"
         stroke = "blue"/>;
+
+    function check() {
+        containsPath(adjList, 576, 577);
+        if(visited[577]) {
+            console.log("Win");
+        }
+        setVistedState(new Array(580).fill(false));
+    }
 
     return (
         <div>

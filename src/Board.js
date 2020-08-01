@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import Box from './Box';
 import Connection from './Connection';
 import Player from './Player';
+import Winner from './Winner';
 
 function Board(props) {
     const initialPegs = initilizePegs();
@@ -25,7 +26,7 @@ function Board(props) {
             adjList[576] = temp2;
         }
 
-        // connect bottom row to bot node
+        // connect bottom row to bottom node
         for(let j = 553; j < 575; j++) {
             const temp = adjList[j].slice();
             temp.push(577);
@@ -34,6 +35,31 @@ function Board(props) {
             const temp2 = adjList[577].slice();
             temp2.push(j);
             adjList[577] = temp2;
+        }
+
+        // connect left row to left node
+        for(let i = 1; i < 23; i++) {
+            const index = i * 24;
+            const temp = adjList[index].slice();
+            temp.push(578);
+            adjList[index] = temp;
+
+            const temp2 = adjList[578].slice();
+            temp2.push(index);
+            adjList[578] = temp2;
+        }
+
+
+        // connect right row to right node
+        for(let j = 1; j < 23; j++) {
+            const index = j * 24 + 23;
+            const temp = adjList[index].slice();
+            temp.push(579);
+            adjList[index] = temp;
+
+            const temp2 = adjList[579].slice();
+            temp2.push(index);
+            adjList[579] = temp2;
         }
 
         return adjList;
@@ -139,13 +165,29 @@ function Board(props) {
     }
 
     
-    function containsPath(adjList, node1, node2) {
+    function containsPath(adjList, node1) {
         visited[node1] = true;
         for(const children of adjList[node1]) {
             if(visited[children] !== true) {
                 containsPath(adjList, children);
             }
         }
+    }
+
+    function checkWinner() {
+        if(currPlayer) {
+            containsPath(adjList, 576);
+            if(visited[577]) {
+                setWinner(1);
+            }
+        } else {
+            containsPath(adjList, 578);
+            if(visited[579]) {
+                setWinner(2);
+            }
+        }
+
+        setVistedState(new Array(580).fill(false));
     }
 
     function handleClick(i, adjList) {
@@ -157,7 +199,7 @@ function Board(props) {
             setCurrPlayer(!currPlayer);
         }
         setPegState(slicedPegState);
-        check();
+        checkWinner();
     }
 
     const allPegs = pegs.map((peg) => {
@@ -189,17 +231,10 @@ function Board(props) {
     const rightBorder = <Connection x1 = "805" y1 = "52.5" x2 = "805" y2 = "787.5"
         stroke = "blue"/>;
 
-    function check() {
-        containsPath(adjList, 576, 577);
-        if(visited[577]) {
-            console.log("Win");
-        }
-        setVistedState(new Array(580).fill(false));
-    }
-
     return (
         <div>
-            <Player player = {currPlayer}/>        
+            <Player player = {currPlayer}/>
+            <Winner winner = {winner}/>     
             <svg height = "1000" width = "1000">
                 { topBorder }
                 { botBorder }

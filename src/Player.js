@@ -2,9 +2,9 @@ import React from 'react';
 
 function Player(props) {
 	if(props.player) {
-		return <h2>Red</h2>;
+		return <h2>Current Player: Red</h2>;
 	} else {
-		return <h2>Blue</h2>;
+		return <h2>Current Player: Blue</h2>;
 	}
 }
 

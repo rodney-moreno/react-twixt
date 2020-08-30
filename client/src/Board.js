@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import socketIOClient from 'socket.io-client';
 import Box from './Box';
 import Connection from './Connection';
 import Player from './Player';
 import Winner from './Winner';
 import Border from './Border';
+
+const endPoint = "http://127.0.0.1:8080";
+const socket = socketIOClient(endPoint);
 
 function Board(props) {
     const initialPegs = initilizePegs();
@@ -14,6 +18,7 @@ function Board(props) {
     const [adjList, setAdjListState] = useState(initialAdjList);
     const [visited, setVistedState] = useState(new Array(580).fill(false));
     const [winner, setWinner] = useState(0);
+    
 
     function initAdjList() {
         const adjList = new Array(580).fill([]);
@@ -161,7 +166,8 @@ function Board(props) {
                 }
             }
         }
-        setLineState(slicedLineState);
+
+        return slicedLineState;
     }
 
     
@@ -178,16 +184,16 @@ function Board(props) {
         if(currPlayer) {
             containsPath(adjList, 576);
             if(visited[577]) {
-                setWinner(1);
+                return 1;
             }
         } else {
             containsPath(adjList, 578);
             if(visited[579]) {
-                setWinner(2);
+                return 2;
             }
         }
 
-        setVistedState(new Array(580).fill(false));
+        //
     }
 
     function handleClick(i, adjList) {
@@ -195,11 +201,10 @@ function Board(props) {
         if(slicedPegState[i].clickedBy === 0) {
             currPlayer ? slicedPegState[i].clickedBy = 1 :
                 slicedPegState[i].clickedBy = 2;
-            checkPotentialLines(i, adjList);
-            setCurrPlayer(!currPlayer);
         }
-        setPegState(slicedPegState);
-        checkWinner();
+        const slicedLineState = checkPotentialLines(i, adjList);
+        const win = checkWinner();
+        send(slicedPegState, slicedLineState, adjList, win);
     }
 
     const allPegs = pegs.map((peg) => {
@@ -221,6 +226,34 @@ function Board(props) {
                 x2 = {line.p2.cx} y2 = {line.p2.cy} stroke = "black"/>
         )
     })
+
+    function send(toBePegState, toBeLineState, toBeAdjListState, toBeWinnerState) {
+        //const socket = socketIOClient(endPoint);
+        const data = new Array();
+        data[0] = toBePegState;
+        data[1] = currPlayer;
+        data[2] = toBeLineState;
+        data[3] = toBeAdjListState;
+        data[4] = toBeWinnerState;
+        socket.emit('peg dropped', data);
+        //return () => socket.disconnect();
+    }
+
+    useEffect(() => {
+        //const socket = socketIOClient(endPoint);
+        socket.on('peg dropped', (data) => {
+            setPegState(data[0]);
+            setCurrPlayer(!data[1]);
+            setLineState(data[2]);
+            setAdjListState(data[3]);
+            setVistedState(new Array(580).fill(false));
+            setWinner(data[4]);
+        });
+
+
+
+        //return () => socket.disconnect();
+    }, []);
 
     return (
         <div>

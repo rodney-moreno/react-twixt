@@ -18,8 +18,6 @@ function Board(props) {
     const [adjList, setAdjListState] = useState(initialAdjList);
     const [visited, setVistedState] = useState(new Array(580).fill(false));
     const [winner, setWinner] = useState(0);
-    
-    console.log(adjList);
 
     function initAdjList() {
         const adjList = new Array(580).fill([]);
@@ -171,7 +169,6 @@ function Board(props) {
         return slicedLineState;
     }
 
-    
     function containsPath(adjList, node1) {
         visited[node1] = true;
         for(const children of adjList[node1]) {
@@ -227,7 +224,6 @@ function Board(props) {
     })
 
     function send(toBePegState, toBeLineState, toBeAdjListState, toBeWinnerState) {
-        //const socket = socketIOClient(endPoint);
         const data = new Array();
         data[0] = toBePegState;
         data[1] = currPlayer;
@@ -235,11 +231,9 @@ function Board(props) {
         data[3] = toBeAdjListState;
         data[4] = toBeWinnerState;
         socket.emit('peg dropped', data);
-        //return () => socket.disconnect();
     }
 
     useEffect(() => {
-        //const socket = socketIOClient(endPoint);
         socket.on('peg dropped', (data) => {
             setPegState(data[0]);
             setCurrPlayer(!data[1]);
@@ -247,12 +241,7 @@ function Board(props) {
             setAdjListState(data[3]);
             setVistedState(new Array(580).fill(false));
             setWinner(data[4]);
-            console.log("Here")
         });
-
-
-
-        //return () => socket.disconnect();
     }, []);
 
     return (

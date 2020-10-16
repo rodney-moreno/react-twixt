@@ -12,8 +12,18 @@ function Register(props) {
         setPassword(event.target.value);
     }
 
-    function handleSubmit() {
-        
+    function handleSubmit(event) {
+        const registrationInfo = {username, password};
+        fetch('/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(registrationInfo)
+        }).then((res) => {
+            console.log(res)
+        });
+        event.preventDefault();
     }
 
     return(

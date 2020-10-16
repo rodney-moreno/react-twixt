@@ -19,6 +19,7 @@ function Board(props) {
     const [visited, setVistedState] = useState(new Array(580).fill(false));
     const [winner, setWinner] = useState(0);
     
+    console.log(adjList);
 
     function initAdjList() {
         const adjList = new Array(580).fill([]);
@@ -192,8 +193,6 @@ function Board(props) {
                 return 2;
             }
         }
-
-        //
     }
 
     function handleClick(i, adjList) {
@@ -248,6 +247,7 @@ function Board(props) {
             setAdjListState(data[3]);
             setVistedState(new Array(580).fill(false));
             setWinner(data[4]);
+            console.log("Here")
         });
 
 

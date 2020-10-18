@@ -41,6 +41,10 @@ io.on('connection', socket => {;
 })
 
 app.post('/register', (req, res) => {
+
+	/* form validation */
+	
+
 	bcrypt.hash(req.body.password, saltRounds, (err, hash) => {
 		if(err) {
 			throw err;
@@ -54,6 +58,10 @@ app.post('/register', (req, res) => {
 	})
 	
 	res.send("Receieved")
+});
+
+app.post('/login', (req, res) => {
+
 });
 
 http.listen(port, () => console.log(`Listenting on port ${port}`));

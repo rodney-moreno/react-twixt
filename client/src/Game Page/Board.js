@@ -246,8 +246,8 @@ function Board(props) {
 
     return (
         <div>
-            <Player player = {currPlayer}/>
-            <Winner winner = {winner}/>     
+            <Player player = { currPlayer }/>
+            <Winner winner = { winner }/>     
             <svg height = "1000" width = "1000">
                 <Border />
                 { connections }

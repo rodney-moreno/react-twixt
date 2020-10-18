@@ -31,9 +31,9 @@ function Register(props) {
             <h2>Register</h2>
             <form onSubmit = { handleSubmit }>
                 <label>username</label><br/>
-                <input type="text" value = { username } onChange = { handleUserNameChange }></input><br/>
+                <input type="text" required value = { username } onChange = { handleUserNameChange }></input><br/>
                 <label>password</label><br/>
-                <input type="text" value = { password } onChange = { handlePasswordChange }></input><br/><br/>
+                <input type="password" required pattern = "[^a-zA-Z\d\s:]" value = { password } onChange = { handlePasswordChange }></input><br/><br/>
                 <input type="submit"></input>
             </form>
         </div>
